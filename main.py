@@ -1,17 +1,17 @@
 import sys, json, os, time
 from PyQt6.QtWidgets import (QApplication, QWidget, QLabel,QPushButton)
 from PyQt6.QtGui import QFont, QPixmap
-from datetime import datetime
 #from transaccion.gasto import Gasto
-from ventanas.ingreso import IngresoView
+from ventanas.ingreso_o_gasto import IngresoOGastoView
 #from transaccion.movimiento import Movimiento
 # from transaccion.guardar import Guardar
 import ventanas.config as config
+from datetime import datetime
 
 
 if not os.path.isfile("registros.json"):
   with open('bbdd/registros.json', 'w') as registro_file:
-    json.dump(config.json_registro, registro_file, indent=2)
+    json.dump({}, registro_file, indent=2)
 
 if not os.path.isfile("cuentas.json"):
   now = datetime.now()
@@ -42,6 +42,7 @@ class Inicio(QWidget):
     gasto_boton.setText("Gasto")
     gasto_boton.resize(120,24)
     gasto_boton.move(20,80)
+    gasto_boton.clicked.connect(self.gastar)
 
     mover_boton = QPushButton(self)
     mover_boton.setText("Mover dinero")
@@ -52,6 +53,7 @@ class Inicio(QWidget):
     guardar_boton.setText("Guardar cambios")
     guardar_boton.resize(120,24)
     guardar_boton.move(20,160)
+    guardar_boton.clicked.connect(self.guardar)
 
     vercuentas_boton = QPushButton(self)
     vercuentas_boton.setText("Ver cuentas")
@@ -67,9 +69,23 @@ class Inicio(QWidget):
   def salir(self):
     exit()
 
+  def guardar(self):
+    with open('bbdd/registros.json', 'r') as registro_file:
+      registro_dict = json.load(registro_file)
+    with open('bbdd/registros.json', 'w') as registro_file:
+      registro_dict.update(config.cache)
+      json.dump(registro_dict, registro_file, indent=2)
+      
   def ingresar(self):
-    self.ingres_form = IngresoView()
-    self.ingres_form.show()
+    
+    self.ingress_form = IngresoOGastoView()
+    self.ingress_form.tipo = 'Ingreso'
+    self.ingress_form.show()
+
+  def gastar(self):
+    self.gasto_form = IngresoOGastoView()
+    self.gasto_form.tipo = 'Gasto'
+    self.gasto_form.show()
 
 if __name__ == '__main__':
   app = QApplication(sys.argv)

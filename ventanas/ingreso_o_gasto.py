@@ -1,10 +1,17 @@
 from PyQt6.QtWidgets import (QVBoxLayout, QHBoxLayout,QComboBox,QDialog, QLabel, QPushButton, QLineEdit, QMessageBox, QCheckBox)
 import sys
 from PyQt6.QtGui import QFont
-from .config import lista_tipos_de_registro
+from datetime import datetime
+from . import config
 
-class IngresoView(QDialog):
+now = datetime.now()
+print(now)
+
+class IngresoOGastoView(QDialog):
+
   def __init__(self):
+    now = datetime.now()
+    print(now)
     super().__init__()
     self.setWindowTitle("Pempins-GUI")
     self.setGeometry(100,100,100,100)
@@ -17,14 +24,15 @@ class IngresoView(QDialog):
     self.importe_label = QLineEdit(self)
     #Razon
     razon_label = QLabel("razon:")
-    self.razon_label = QLineEdit(self)
+    self.razon_label = QLineEdit('self')
 
     #Donde aplicarlo
     dondeaplicar_label = QLabel("donde aplicar:")
     self.dondeaplicar = QComboBox(self)
-    self.dondeaplicar.addItems(lista_tipos_de_registro)
+    self.dondeaplicar.addItems(config.lista_tipos_de_registro)
 
     cache_buton = QPushButton('Guardar en cache')
+    cache_buton.clicked.connect(self.guardar_en_cache)
     cancelar_buton = QPushButton('Cancelar')
     cancelar_buton.clicked.connect(self.cancelar)
 
@@ -52,3 +60,28 @@ class IngresoView(QDialog):
 
   def cancelar(self):
     self.close()
+  
+  def guardar_en_cache(self):
+    self.check_form()
+    if self.check:
+      now = datetime.now()
+      fecha = now.strftime("%d/%m/%Y %H:%M:%S")
+      importe = float(self.importe_label.text())
+      razon = self.razon_label.text()
+      cuenta = self.dondeaplicar.currentText()
+      config.cache.update({fecha: {"importe": importe, "razon": razon, "cuenta": cuenta, "tipo": self.tipo}})
+      print(config.cache)
+      self.close()
+
+  def check_form(self):
+    self.check = False
+    try:
+      float(self.importe_label.text())
+      self.check = True
+    except:
+      QMessageBox.information(self, 'Error', "Debes de escribir un numero. Ej: 12.00", QMessageBox.StandardButton.Close,QMessageBox.StandardButton.Close)
+
+    if len(self.razon_label.text()) > 255:
+      QMessageBox.information(self, 'Error', "La razon debe de ser menos de 255 caracteres", QMessageBox.StandardButton.Close,QMessageBox.StandardButton.Close)
+    else:
+      self.check = True
