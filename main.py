@@ -7,13 +7,15 @@ from ventanas.ingreso_o_gasto import IngresoOGastoView
 # from transaccion.guardar import Guardar
 import ventanas.config as config
 from datetime import datetime
+from ventanas.guardar import Guardar
+from ventanas.movimiento import MovimientoView
 
 
-if not os.path.isfile("registros.json"):
+if not os.path.isfile("bbdd/registros.json"):
   with open('bbdd/registros.json', 'w') as registro_file:
     json.dump({}, registro_file, indent=2)
 
-if not os.path.isfile("cuentas.json"):
+if not os.path.isfile("bbdd/cuentas.json"):
   now = datetime.now()
   fecha_actual = "01/01/1970 00:00:00"
   dictionary={"ultima_modificacion":fecha_actual,"Diezmo":0,"Ahorro":0,"Comida":0,"Capricho":0,"Transporte":0,"Vivienda":0}
@@ -48,6 +50,7 @@ class Inicio(QWidget):
     mover_boton.setText("Mover dinero")
     mover_boton.resize(120,24)
     mover_boton.move(20,120)
+    mover_boton.clicked.connect(self.mover)
 
     guardar_boton = QPushButton(self)
     guardar_boton.setText("Guardar cambios")
@@ -70,14 +73,10 @@ class Inicio(QWidget):
     exit()
 
   def guardar(self):
-    with open('bbdd/registros.json', 'r') as registro_file:
-      registro_dict = json.load(registro_file)
-    with open('bbdd/registros.json', 'w') as registro_file:
-      registro_dict.update(config.cache)
-      json.dump(registro_dict, registro_file, indent=2)
+    self.accion = Guardar()
+    self.accion.checkear_dict()
       
   def ingresar(self):
-    
     self.ingress_form = IngresoOGastoView()
     self.ingress_form.tipo = 'Ingreso'
     self.ingress_form.show()
@@ -86,6 +85,10 @@ class Inicio(QWidget):
     self.gasto_form = IngresoOGastoView()
     self.gasto_form.tipo = 'Gasto'
     self.gasto_form.show()
+  
+  def mover(self):
+    self.movimiento_form = MovimientoView()
+    self.movimiento_form.show()
 
 if __name__ == '__main__':
   app = QApplication(sys.argv)

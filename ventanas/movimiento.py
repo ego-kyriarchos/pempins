@@ -4,7 +4,7 @@ from PyQt6.QtGui import QFont
 from datetime import datetime
 from . import config
 
-class IngresoOGastoView(QDialog):
+class MovimientoView(QDialog):
 
   def __init__(self):
     super().__init__()
@@ -22,9 +22,12 @@ class IngresoOGastoView(QDialog):
     self.razon_label = QLineEdit('self')
 
     #Donde aplicarlo
-    dondeaplicar_label = QLabel("donde aplicar:")
-    self.dondeaplicar = QComboBox(self)
-    self.dondeaplicar.addItems(config.lista_tipos_de_registro)
+    origen_label = QLabel("Origen:")
+    self.origen = QComboBox(self)
+    self.origen.addItems(config.lista_tipos_de_registro)
+    destino_label = QLabel("Destino:")
+    self.destino = QComboBox(self)
+    self.destino.addItems(config.lista_tipos_de_registro)
 
     cache_buton = QPushButton('Guardar en cache')
     cache_buton.clicked.connect(self.guardar_en_cache)
@@ -36,20 +39,24 @@ class IngresoOGastoView(QDialog):
     h_layout_2 = QHBoxLayout()
     h_layout_3 = QHBoxLayout()
     h_layout_4 = QHBoxLayout()
+    h_layout_5 = QHBoxLayout()
 
     h_layout_1.addWidget(importe_label)
     h_layout_1.addWidget(self.importe_label)
     h_layout_2.addWidget(razon_label)
     h_layout_2.addWidget(self.razon_label)
-    h_layout_3.addWidget(dondeaplicar_label)
-    h_layout_3.addWidget(self.dondeaplicar)
-    h_layout_4.addWidget(cache_buton)
-    h_layout_4.addWidget(cancelar_buton)
+    h_layout_3.addWidget(origen_label)
+    h_layout_3.addWidget(self.origen)
+    h_layout_4.addWidget(destino_label)
+    h_layout_4.addWidget(self.destino)
+    h_layout_5.addWidget(cache_buton)
+    h_layout_5.addWidget(cancelar_buton)
 
     vertical_layout_main.addLayout(h_layout_1)
     vertical_layout_main.addLayout(h_layout_2)
     vertical_layout_main.addLayout(h_layout_3)
     vertical_layout_main.addLayout(h_layout_4)
+    vertical_layout_main.addLayout(h_layout_5)
 
     self.setLayout(vertical_layout_main)
 
@@ -63,14 +70,17 @@ class IngresoOGastoView(QDialog):
       fecha = now.strftime("%d/%m/%Y %H:%M:%S")
       importe = float(self.importe_label.text())
       razon = self.razon_label.text()
-      cuenta = self.dondeaplicar.currentText()
-      config.cache.update({fecha: {"importe": importe, "razon": razon, "cuenta": cuenta, "tipo": self.tipo}})
+      origen = self.origen.currentText()
+      destino = self.destino.currentText()
+      config.cache.update({fecha: {"importe": importe, "razon": razon, "origen": origen, "destino": destino, "tipo": "Movimiento"}})
       print(config.cache)
       self.close()
 
   def check_form(self):
     self.check = False
     contador = 0
+    origen = self.origen.currentText()
+    destino = self.destino.currentText()
     try:
       float(self.importe_label.text())
       contador += 1
@@ -81,6 +91,9 @@ class IngresoOGastoView(QDialog):
       QMessageBox.information(self, 'Error', "La razon debe de ser menos de 255 caracteres", QMessageBox.StandardButton.Close,QMessageBox.StandardButton.Close)
     else:
       contador += 1
-    
-    if contador == 2:
+    if origen == destino:
+      QMessageBox.information(self, 'Error', "No pudes mover dinero en las mismas cuentas", QMessageBox.StandardButton.Close,QMessageBox.StandardButton.Close)
+    else:
+      contador += 1
+    if contador == 3:
       self.check = True
