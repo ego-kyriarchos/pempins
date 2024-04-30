@@ -24,10 +24,10 @@ class MovimientoView(QDialog):
     #Donde aplicarlo
     origen_label = QLabel("Origen:")
     self.origen = QComboBox(self)
-    self.origen.addItems(config.lista_tipos_de_registro)
+    self.origen.addItems(config.lista_tipos_de_registro[:-1][1:])
     destino_label = QLabel("Destino:")
     self.destino = QComboBox(self)
-    self.destino.addItems(config.lista_tipos_de_registro)
+    self.destino.addItems(config.lista_tipos_de_registro[:-1][1:])
 
     cache_buton = QPushButton('Guardar en cache')
     cache_buton.clicked.connect(self.guardar_en_cache)

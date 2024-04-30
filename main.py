@@ -29,6 +29,7 @@ class Inicio(QWidget):
   
   def startUI(self):
     self.setGeometry(100,100,450,500)
+    self.setFixedSize(450, 500)
     self.setWindowTitle("Pempins-GUI")
     self.opciones()
     self.show()
