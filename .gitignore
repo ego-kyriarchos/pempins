@@ -2,3 +2,5 @@ venv
 Historial
 *.json
 __pycache__
+test*
+untitled*

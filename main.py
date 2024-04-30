@@ -1,6 +1,7 @@
-import sys, json, os, time
-from PyQt6.QtWidgets import (QApplication, QWidget, QLabel,QPushButton)
-from PyQt6.QtGui import QFont, QPixmap
+import sys, json, os, time, yaml
+from PyQt6.QtWidgets import (QApplication, QWidget, QLabel,QPushButton, QPlainTextEdit)
+from PyQt6.QtGui import QFont, QPixmap, QIcon
+from PyQt6.QtCore import Qt
 #from transaccion.gasto import Gasto
 from ventanas.ingreso_o_gasto import IngresoOGastoView
 #from transaccion.movimiento import Movimiento
@@ -30,9 +31,23 @@ class Inicio(QWidget):
   def startUI(self):
     self.setGeometry(100,100,450,500)
     self.setFixedSize(450, 500)
+    self.setWindowIcon(QIcon('money-bag_1f4b0.png'))
     self.setWindowTitle("Pempins-GUI")
     self.opciones()
+    self.datos_de_cuenta()
     self.show()
+
+  def datos_de_cuenta(self):
+    with open('bbdd/registros.json', 'r') as registro_file:
+      historial = json.load(registro_file)
+    historial = yaml.dump(historial)
+    text_area = QPlainTextEdit(self)
+    text_area.focusPolicy()
+    if config.cache != {}:
+      text_area.appendPlainText('----------')
+    text_area.appendPlainText(historial)
+    text_area.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+    text_area.setGeometry(180,40,250,460)
 
   def opciones(self):
     ingreso_boton = QPushButton(self)
@@ -58,6 +73,7 @@ class Inicio(QWidget):
     guardar_boton.resize(120,24)
     guardar_boton.move(20,160)
     guardar_boton.clicked.connect(self.guardar)
+    guardar_boton.clicked.connect(self.datos_de_cuenta)
 
     vercuentas_boton = QPushButton(self)
     vercuentas_boton.setText("Ver cuentas")
