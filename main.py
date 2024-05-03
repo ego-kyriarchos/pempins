@@ -40,14 +40,17 @@ class Inicio(QWidget):
   def datos_de_cuenta(self):
     with open('bbdd/registros.json', 'r') as registro_file:
       historial = json.load(registro_file)
-    historial = yaml.dump(historial)
-    text_area = QPlainTextEdit(self)
-    text_area.focusPolicy()
+    self.historial = yaml.dump(historial)
+    self.text_area = QPlainTextEdit(self)
+    self.text_area.setGeometry(180,40,250,460)
+    self.text_area.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+    self.on_text_area_append()
+
+  def on_text_area_append(self):
+    self.text_area.focusPolicy()
     if config.cache != {}:
-      text_area.appendPlainText('----------')
-    text_area.appendPlainText(historial)
-    text_area.setFocusPolicy(Qt.FocusPolicy.NoFocus)
-    text_area.setGeometry(180,40,250,460)
+      self.text_area.appendPlainText('----------')
+    self.text_area.appendPlainText(self.historial)
 
   def opciones(self):
     ingreso_boton = QPushButton(self)
@@ -73,7 +76,7 @@ class Inicio(QWidget):
     guardar_boton.resize(120,24)
     guardar_boton.move(20,160)
     guardar_boton.clicked.connect(self.guardar)
-    guardar_boton.clicked.connect(self.datos_de_cuenta)
+    guardar_boton.clicked.connect(self.on_text_area_append)
 
     vercuentas_boton = QPushButton(self)
     vercuentas_boton.setText("Ver cuentas")
