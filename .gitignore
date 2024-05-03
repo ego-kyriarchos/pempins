@@ -1,6 +1,6 @@
 venv
 Historial
-*.json
+*.json*
 __pycache__
 test*
 untitled*
