@@ -6,7 +6,6 @@ from datetime import datetime
 from view.viewIngresoGasto import Ui_IngresarGastar
 from view.viewMovimiento import Ui_Movimiento
 import view.config as config 
-from functools import cache
 
 class MainWin(QMainWindow):
   def __init__(self):
@@ -21,9 +20,6 @@ class MainWin(QMainWindow):
     self.ui.botonMover.clicked.connect(lambda:self.mover())
     self.ui.botonGuardarCambios.clicked.connect(lambda:self.guardar())
     self.cached_mem = {}
-    self.lista_tipos_de_registro = ['Diezmo', 'Ahorro', 'Comida', 'Capricho', 'Transporte', 'Vivienda', 'Todos']
-  
-  def config(self):
     self.lista_tipos_de_registro = ['Diezmo', 'Ahorro', 'Comida', 'Capricho', 'Transporte', 'Vivienda', 'Todos']
     self.porcentages = {"Diezmo": 0.10, "Transporte": 0.10, "Ahorro": 0.18, "Comida": 0.30, "Capricho": 0.10, "Vivienda": 0.22}
 
@@ -71,28 +67,74 @@ class MainWin(QMainWindow):
 
     pempins_db.close()
 
+  def guardar_cache_en_bbdd(self):
+    pempins_db = sqlite3.connect("bbdd/pempins.db")
+    for fecha, datos in self.cached_mem.items():
+      if datos["tipo"] == "ingreso":
+        print("insertando en la tabla ingresos")
+        pempins_db.execute("""
+          insert into ingresos (Fecha,Importe,Razon,AplicarEn)
+          values (?,?,?,?);
+        """, (fecha, datos["importe"], datos["razon"], datos["cuenta"]))
+        pempins_db.commit()
+      elif datos["tipo"] == "gasto":
+        print("insertando en la tabla gastos")
+        pempins_db.execute("""
+          insert into gastos (Fecha,Importe,Razon,AplicarEn)
+          values (?,?,?,?);
+        """, (fecha, datos["importe"], datos["razon"], datos["cuenta"]))
+        pempins_db.commit()
+    pempins_db.close()
+
+  def calcular_porcentages(self):
+    pempins_db = sqlite3.connect("bbdd/pempins.db")
+    pempins_db = pempins_db.cursor()
+    pempins_db.execute("select * from cuentas order by id desc limit 1;")
+    datos_db = pempins_db.fetchall()
+    pempins_db.close()
+
+    if datos_db == []:
+      datos_dict = {"Fecha": 0, "Diezmo": 0, "Ahorro": 0, "Comida": 0, "Capricho": 0, "Transporte": 0, "Vivienda": 0}
+    else:
+      datos_dict = {"Fecha": datos_db[0][1], "Diezmo": float(datos_db[0][2]), "Ahorro": float(datos_db[0][3]), "Comida": float(datos_db[0][4]), "Capricho": float(datos_db[0][5]), "Transporte": float(datos_db[0][6]), "Vivienda": float(datos_db[0][7])}
+
+    for fecha, datos_cache in self.cached_mem.items():
+      if datos_cache["cuenta"] == "Todos" and datos_cache["tipo"] == "ingreso":
+        for cuenta in self.porcentages:
+          calculo_cuenta = round(datos_cache["importe"] * self.porcentages[cuenta], 2)
+          calculo_cuenta = round(datos_dict[cuenta] + calculo_cuenta, 2)
+          datos_dict[cuenta] = calculo_cuenta
+      elif datos_cache["tipo"] == "ingreso":
+        cuenta = datos_cache["cuenta"]
+        calculo_cuenta = round(datos_cache["importe"] + datos_dict[cuenta], 2)
+        datos_dict[cuenta] = calculo_cuenta
+
+      if datos_cache["cuenta"] == "Todos" and datos_cache["tipo"] == "gasto":
+        for cuenta in self.porcentages:
+          calculo_cuenta = round(datos_cache["importe"] * self.porcentages[cuenta], 2)
+          calculo_cuenta = round(datos_dict[cuenta] - calculo_cuenta)
+          datos_dict[cuenta] = calculo_cuenta
+          print(datos_dict)
+      elif datos_cache["tipo"] == "gasto":
+        cuenta = datos_cache["cuenta"]
+        calculo_cuenta = round(datos_dict[cuenta] - datos_cache["importe"], 2)
+        datos_dict[cuenta] = calculo_cuenta
+
+    now = datetime.now()
+    fecha = now.strftime("%d/%m/%Y %H:%M:%S")
+    pempins_db = sqlite3.connect("bbdd/pempins.db")
+    pempins_db.execute("""insert into cuentas (Fecha,Diezmo,Ahorro,Comida,Capricho,Transporte,Vivienda)
+    values (?,?,?,?,?,?,?)""", (fecha,datos_dict["Diezmo"], datos_dict["Ahorro"], datos_dict["Comida"], datos_dict["Capricho"], datos_dict["Transporte"], datos_dict["Vivienda"]))
+    pempins_db.commit()
+    pempins_db.close()
+
   def guardar(self):
     if self.cached_mem == {}:
       QMessageBox.information(self, 'Error', "No hay nada en la caché", QMessageBox.StandardButton.Close,QMessageBox.StandardButton.Close)
     else:
-      pempins_db = sqlite3.connect("bbdd/pempins.db")
-      for fecha, datos in self.cached_mem.items():
-        if datos["tipo"] == "ingreso":
-          print("insertando en la tabla ingresos")
-          pempins_db.execute("""
-            insert into ingresos (Fecha,Importe,Razon,AplicarEn)
-            values (?,?,?,?);
-          """, (fecha, datos["importe"], datos["razon"], datos["cuenta"]))
-          pempins_db.commit()
-        elif datos["tipo"] == "gasto":
-          print("insertando en la tabla gastos")
-          pempins_db.execute("""
-            insert into gastos (Fecha,Importe,Razon,AplicarEn)
-            values (?,?,?,?);
-          """, (fecha, datos["importe"], datos["razon"], datos["cuenta"]))
-          pempins_db.commit()
-      pempins_db.close()
-      self.cached_mem == {}
+      self.guardar_cache_en_bbdd()
+      self.calcular_porcentages()
+      self.cached_mem = {}
 
   def ingresar(self):
     self.ingreso = QtWidgets.QMainWindow()
@@ -124,7 +166,7 @@ class MainWin(QMainWindow):
     self.checkGuardadoEnCache()
     if self.check:
       now = datetime.now()
-      importe = self.ui.lineEditImporte.text()
+      importe = float(self.ui.lineEditImporte.text())
       fecha = now.strftime("%d/%m/%Y %H:%M:%S")
       razon = self.ui.lineEditRazon.text()
       cuenta = self.ui.comboBoxAplicarEn.currentText()
