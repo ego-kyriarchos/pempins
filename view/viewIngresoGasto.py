@@ -73,7 +73,6 @@ class Ui_IngresarGastar(object):
         font.setPointSize(11)
         self.comboBoxAplicarEn.setFont(font)
         self.comboBoxAplicarEn.setObjectName("comboBoxAplicarEn")
-        #self.comboBoxAplicarEn.addItems(['Diezmo', 'Ahorro', 'Comida', 'Capricho', 'Transporte', 'Vivienda', 'Todos'])
         self.formLayout.setWidget(2, QtWidgets.QFormLayout.ItemRole.FieldRole, self.comboBoxAplicarEn)
         self.labelFecha = QtWidgets.QLabel(parent=self.formLayoutWidget)
         font = QtGui.QFont()
@@ -86,6 +85,7 @@ class Ui_IngresarGastar(object):
         font.setPointSize(11)
         self.dateEditFecha.setFont(font)
         self.dateEditFecha.setCalendarPopup(True)
+        self.dateEditFecha.setDate(QtCore.QDate(2024, 1, 1))
         self.dateEditFecha.setObjectName("dateEditFecha")
         self.formLayout.setWidget(3, QtWidgets.QFormLayout.ItemRole.FieldRole, self.dateEditFecha)
 
@@ -101,3 +101,4 @@ class Ui_IngresarGastar(object):
         self.labelRazon.setText(_translate("IngresarGastar", "Razon:"))
         self.labelAplicar.setText(_translate("IngresarGastar", "Aplicar en:   "))
         self.labelFecha.setText(_translate("IngresarGastar", "Fecha:"))
+        self.dateEditFecha.setDisplayFormat(_translate("IngresarGastar", "d/M/yyyy"))

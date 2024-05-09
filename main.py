@@ -121,7 +121,7 @@ class MainWin(QMainWindow):
         datos_dict[cuenta] = calculo_cuenta
 
     now = datetime.now()
-    fecha = now.strftime("%d/%m/%Y %H:%M:%S")
+    fecha = now.strftime("%d/%m/%Y")
     pempins_db = sqlite3.connect("bbdd/pempins.db")
     pempins_db.execute("""insert into cuentas (Fecha,Diezmo,Ahorro,Comida,Capricho,Transporte,Vivienda)
     values (?,?,?,?,?,?,?)""", (fecha,datos_dict["Diezmo"], datos_dict["Ahorro"], datos_dict["Comida"], datos_dict["Capricho"], datos_dict["Transporte"], datos_dict["Vivienda"]))
@@ -141,6 +141,11 @@ class MainWin(QMainWindow):
     self.ui = Ui_IngresarGastar()
     self.ui.setupUi(self.ingreso)
     self.ingreso.show()
+    now = datetime.now()
+    year = int(now.strftime("%Y"))
+    month = int(now.strftime("%m"))
+    day = int(now.strftime("%d"))
+    self.ui.dateEditFecha.setDate(QtCore.QDate(year, month, day))
     self.ui.comboBoxAplicarEn.addItems(self.lista_tipos_de_registro)
     self.ui.pushButtonCancelar.clicked.connect(lambda:self.ingreso.close())
     self.ui.pushButtonGuardarEnCache.clicked.connect(lambda:self.guardarEnCache("ingreso"))
@@ -161,13 +166,14 @@ class MainWin(QMainWindow):
     self.ui.comboBoxOrigen.addItems(self.lista_tipos_de_registro[:-1])
     self.ui.comboBoxDestino.addItems(self.lista_tipos_de_registro[:-1])
     self.movimiento.show()
+    self.ui.pushButtonGuardarEnCache.clicked.connect(lambda:self.guardarEnCache("movimiento"))
+    self.ui.pushButtonCancelar.clicked.connect(lambda:self.movimiento.close())
 
   def guardarEnCache(self, tipo):
-    self.checkGuardadoEnCache()
-    if self.check:
-      now = datetime.now()
+    self.checkGuardadoEnCache(tipo)
+    if self.check and tipo in ["ingreso", "gasto"] :
       importe = float(self.ui.lineEditImporte.text())
-      fecha = now.strftime("%d/%m/%Y %H:%M:%S")
+      fecha = self.ui.dateEditFecha.text()
       razon = self.ui.lineEditRazon.text()
       cuenta = self.ui.comboBoxAplicarEn.currentText()
       self.cached_mem[fecha] = {"importe": importe, "razon": razon, "cuenta": cuenta, "tipo": tipo}
@@ -176,8 +182,18 @@ class MainWin(QMainWindow):
         self.ingreso.close()
       else:
         self.gasto.close()
+    elif self.check and tipo == "movimiento":
+      print(tipo, 'movimiento')
+      importe = float(self.ui.lineEditImporte.text())
+      fecha = self.ui.dateEditFecha.text()
+      razon = self.ui.lineEditRazon.text()
+      destino = self.ui.comboBoxDestino.currentText()
+      origen = self.ui.comboBoxOrigen.currentText()
+      self.cached_mem[fecha] = {"importe": importe, "razon": razon, "origen": origen, "destino": destino, "tipo": tipo}
+      print(self.cached_mem)
+      self.movimiento.close()
 
-  def checkGuardadoEnCache(self):
+  def checkGuardadoEnCache(self, tipo):
     self.check = False
     contador = 0
     try:
@@ -192,8 +208,16 @@ class MainWin(QMainWindow):
     else:
       contador += 1
 
-    if contador == 2:
+    if contador == 2 and tipo in ["gasto", "ingreso"]:
       self.check = True
+    else:
+      if self.ui.comboBoxOrigen.currentText() == self.ui.comboBoxDestino.currentText():
+        QMessageBox.information(self, 'Error', "Origen y destino no puede ser iguales", QMessageBox.StandardButton.Close,QMessageBox.StandardButton.Close)
+        contador += 1
+
+    if contador == 3 and tipo == "movimiento":
+      self.check = True
+    
 
   def verMonedero(self):
     pass
