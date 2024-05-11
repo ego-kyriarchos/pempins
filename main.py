@@ -5,7 +5,6 @@ from view.view_winmain import Ui_MainWindow
 from datetime import datetime
 from view.viewIngresoGasto import Ui_IngresarGastar
 from view.viewMovimiento import Ui_Movimiento
-import view.config as config 
 
 class MainWin(QMainWindow):
   def __init__(self):
@@ -19,9 +18,19 @@ class MainWin(QMainWindow):
     self.ui.botonGastar.clicked.connect(lambda:self.gastar())
     self.ui.botonMover.clicked.connect(lambda:self.mover())
     self.ui.botonGuardarCambios.clicked.connect(lambda:self.guardar())
+    self.ui.botonVerMonedero.clicked.connect(lambda:self.verMonedero())
+    self.ui.botonBuscar.clicked.connect(lambda:self.buscar())
+    
     self.cached_mem = {}
+    self.viewMonedero = False
     self.lista_tipos_de_registro = ['Diezmo', 'Ahorro', 'Comida', 'Capricho', 'Transporte', 'Vivienda', 'Todos']
     self.porcentages = {"Diezmo": 0.10, "Transporte": 0.10, "Ahorro": 0.18, "Comida": 0.30, "Capricho": 0.10, "Vivienda": 0.22}
+    now = datetime.now()
+    self.year = int(now.strftime("%Y"))
+    self.month = int(now.strftime("%m"))
+    self.day = int(now.strftime("%d"))
+    self.ui.FechaDesde.setDate(QtCore.QDate(self.year, self.month, self.day))
+    self.ui.FechaHasta.setDate(QtCore.QDate(self.year, self.month, self.day))
 
   def check_db(self):
     pempins_db = sqlite3.connect("bbdd/pempins.db")
@@ -69,20 +78,27 @@ class MainWin(QMainWindow):
 
   def guardar_cache_en_bbdd(self):
     pempins_db = sqlite3.connect("bbdd/pempins.db")
-    for fecha, datos in self.cached_mem.items():
+    for id, datos in self.cached_mem.items():
       if datos["tipo"] == "ingreso":
         print("insertando en la tabla ingresos")
         pempins_db.execute("""
           insert into ingresos (Fecha,Importe,Razon,AplicarEn)
           values (?,?,?,?);
-        """, (fecha, datos["importe"], datos["razon"], datos["cuenta"]))
+        """, (datos["fecha"], datos["importe"], datos["razon"], datos["cuenta"]))
         pempins_db.commit()
       elif datos["tipo"] == "gasto":
         print("insertando en la tabla gastos")
         pempins_db.execute("""
           insert into gastos (Fecha,Importe,Razon,AplicarEn)
           values (?,?,?,?);
-        """, (fecha, datos["importe"], datos["razon"], datos["cuenta"]))
+        """, (datos["fecha"], datos["importe"], datos["razon"], datos["cuenta"]))
+        pempins_db.commit()
+      elif datos["tipo"] == "movimiento":
+        print("insertando en la tabla movimiento")
+        pempins_db.execute("""
+          insert into movimientos (Fecha, Importe, Razon, Origen, Destino)
+          values (?,?,?,?,?);
+        """, (datos["fecha"], datos["importe"], datos["razon"], datos["origen"], datos["destino"]))
         pempins_db.commit()
     pempins_db.close()
 
@@ -99,26 +115,32 @@ class MainWin(QMainWindow):
       datos_dict = {"Fecha": datos_db[0][1], "Diezmo": float(datos_db[0][2]), "Ahorro": float(datos_db[0][3]), "Comida": float(datos_db[0][4]), "Capricho": float(datos_db[0][5]), "Transporte": float(datos_db[0][6]), "Vivienda": float(datos_db[0][7])}
 
     for fecha, datos_cache in self.cached_mem.items():
-      if datos_cache["cuenta"] == "Todos" and datos_cache["tipo"] == "ingreso":
-        for cuenta in self.porcentages:
-          calculo_cuenta = round(datos_cache["importe"] * self.porcentages[cuenta], 2)
-          calculo_cuenta = round(datos_dict[cuenta] + calculo_cuenta, 2)
+      if datos_cache["tipo"] == "ingreso": 
+        if datos_cache["cuenta"] == "Todos":
+          for cuenta in self.porcentages:
+            calculo_cuenta = round(datos_cache["importe"] * self.porcentages[cuenta], 2)
+            calculo_cuenta = round(datos_dict[cuenta] + calculo_cuenta, 2)
+            datos_dict[cuenta] = calculo_cuenta
+        else:
+          cuenta = datos_cache["cuenta"]
+          calculo_cuenta = round(datos_cache["importe"] + datos_dict[cuenta], 2)
           datos_dict[cuenta] = calculo_cuenta
-      elif datos_cache["tipo"] == "ingreso":
-        cuenta = datos_cache["cuenta"]
-        calculo_cuenta = round(datos_cache["importe"] + datos_dict[cuenta], 2)
-        datos_dict[cuenta] = calculo_cuenta
 
-      if datos_cache["cuenta"] == "Todos" and datos_cache["tipo"] == "gasto":
-        for cuenta in self.porcentages:
-          calculo_cuenta = round(datos_cache["importe"] * self.porcentages[cuenta], 2)
-          calculo_cuenta = round(datos_dict[cuenta] - calculo_cuenta)
+      if datos_cache["tipo"] == "gasto": 
+        if datos_cache["cuenta"] == "Todos":
+          for cuenta in self.porcentages:
+            calculo_cuenta = round(datos_cache["importe"] * self.porcentages[cuenta], 2)
+            calculo_cuenta = round(datos_dict[cuenta] - calculo_cuenta)
+            datos_dict[cuenta] = calculo_cuenta
+            print(datos_dict)
+        else:
+          cuenta = datos_cache["cuenta"]
+          calculo_cuenta = round(datos_dict[cuenta] - datos_cache["importe"], 2)
           datos_dict[cuenta] = calculo_cuenta
-          print(datos_dict)
-      elif datos_cache["tipo"] == "gasto":
-        cuenta = datos_cache["cuenta"]
-        calculo_cuenta = round(datos_dict[cuenta] - datos_cache["importe"], 2)
-        datos_dict[cuenta] = calculo_cuenta
+      
+      if datos_cache["tipo"] == "movimiento":
+        datos_dict[datos_cache["origen"]] -= datos_cache["importe"]
+        datos_dict[datos_cache["destino"]] += datos_cache["importe"]
 
     now = datetime.now()
     fecha = now.strftime("%d/%m/%Y")
@@ -141,11 +163,7 @@ class MainWin(QMainWindow):
     self.ui = Ui_IngresarGastar()
     self.ui.setupUi(self.ingreso)
     self.ingreso.show()
-    now = datetime.now()
-    year = int(now.strftime("%Y"))
-    month = int(now.strftime("%m"))
-    day = int(now.strftime("%d"))
-    self.ui.dateEditFecha.setDate(QtCore.QDate(year, month, day))
+    self.ui.dateEditFecha.setDate(QtCore.QDate(self.year, self.month, self.day))
     self.ui.comboBoxAplicarEn.addItems(self.lista_tipos_de_registro)
     self.ui.pushButtonCancelar.clicked.connect(lambda:self.ingreso.close())
     self.ui.pushButtonGuardarEnCache.clicked.connect(lambda:self.guardarEnCache("ingreso"))
@@ -156,6 +174,7 @@ class MainWin(QMainWindow):
     self.ui.setupUi(self.gasto)
     self.ui.comboBoxAplicarEn.addItems(self.lista_tipos_de_registro)
     self.gasto.show()
+    self.ui.dateEditFecha.setDate(QtCore.QDate(self.year, self.month, self.day))
     self.ui.pushButtonCancelar.clicked.connect(lambda:self.gasto.close())
     self.ui.pushButtonGuardarEnCache.clicked.connect(lambda:self.guardarEnCache("gasto"))
 
@@ -166,17 +185,20 @@ class MainWin(QMainWindow):
     self.ui.comboBoxOrigen.addItems(self.lista_tipos_de_registro[:-1])
     self.ui.comboBoxDestino.addItems(self.lista_tipos_de_registro[:-1])
     self.movimiento.show()
+    self.ui.dateEditFecha.setDate(QtCore.QDate(self.year, self.month, self.day))
     self.ui.pushButtonGuardarEnCache.clicked.connect(lambda:self.guardarEnCache("movimiento"))
     self.ui.pushButtonCancelar.clicked.connect(lambda:self.movimiento.close())
 
   def guardarEnCache(self, tipo):
     self.checkGuardadoEnCache(tipo)
+    timestamp = datetime.now()
+    timestamp = timestamp.timestamp()
     if self.check and tipo in ["ingreso", "gasto"] :
       importe = float(self.ui.lineEditImporte.text())
       fecha = self.ui.dateEditFecha.text()
       razon = self.ui.lineEditRazon.text()
       cuenta = self.ui.comboBoxAplicarEn.currentText()
-      self.cached_mem[fecha] = {"importe": importe, "razon": razon, "cuenta": cuenta, "tipo": tipo}
+      self.cached_mem[timestamp] = {"fecha": fecha, "importe": importe, "razon": razon, "cuenta": cuenta, "tipo": tipo}
       print(self.cached_mem)
       if tipo == "ingreso":
         self.ingreso.close()
@@ -189,7 +211,7 @@ class MainWin(QMainWindow):
       razon = self.ui.lineEditRazon.text()
       destino = self.ui.comboBoxDestino.currentText()
       origen = self.ui.comboBoxOrigen.currentText()
-      self.cached_mem[fecha] = {"importe": importe, "razon": razon, "origen": origen, "destino": destino, "tipo": tipo}
+      self.cached_mem[timestamp] = {"fecha": fecha, "importe": importe, "razon": razon, "origen": origen, "destino": destino, "tipo": tipo}
       print(self.cached_mem)
       self.movimiento.close()
 
@@ -213,14 +235,71 @@ class MainWin(QMainWindow):
     else:
       if self.ui.comboBoxOrigen.currentText() == self.ui.comboBoxDestino.currentText():
         QMessageBox.information(self, 'Error', "Origen y destino no puede ser iguales", QMessageBox.StandardButton.Close,QMessageBox.StandardButton.Close)
+      else:  
         contador += 1
 
     if contador == 3 and tipo == "movimiento":
       self.check = True
     
+  def buscar(self):
+    fecha_desde = self.ui.FechaDesde.text()
+    fecha_hasta = self.ui.FechaHasta.text()
+    fecha_desde = datetime.strptime(fecha_desde, "%d/%m/%Y")
+    fecha_hasta = datetime.strptime(fecha_hasta, "%d/%m/%Y")
+
+    if fecha_desde > fecha_hasta:
+      QMessageBox.information(self, 'Error', 'La fecha "Desde" no puede ser mayor que la fecha "Hasta"', QMessageBox.StandardButton.Close,QMessageBox.StandardButton.Close)
+    else:
+      fecha_hasta = fecha_hasta.__format__("%d/%m/%Y")
+      fecha_desde = fecha_desde.__format__("%d/%m/%Y")
+      pempins_db = sqlite3.connect("bbdd/pempins.db")
+      pempins_db = pempins_db.cursor()
+      pempins_db.execute("select * FROM ingresos where Fecha BETWEEN ? AND ?;", (fecha_desde, fecha_hasta))
+      ingresos = pempins_db.fetchall()
+      pempins_db.execute("select * FROM gastos where Fecha BETWEEN ? AND ?;", (fecha_desde, fecha_hasta))
+      gastos = pempins_db.fetchall()
+      pempins_db.execute("select * FROM movimientos where Fecha BETWEEN ? AND ?;", (fecha_desde, fecha_hasta))
+      movimientos = pempins_db.fetchall()
+      print(fecha_hasta, fecha_desde)
+      print(gastos)
+      print(ingresos)
+      print(movimientos)
+      pempins_db.close()
 
   def verMonedero(self):
-    pass
+    if self.viewMonedero == False:
+      pempins_db = sqlite3.connect("bbdd/pempins.db")
+      pempins_db = pempins_db.cursor()
+      pempins_db.execute("select * from cuentas order by id desc limit 1;")
+      datos_db = pempins_db.fetchall()
+      pempins_db.close()
+      self.ui.textoMonedero.setPlainText("Ahorro:\n"
+f"  {float(datos_db[0][3])}€\n"
+"Diezmo:\n"
+f"  {float(datos_db[0][2])}€\n"
+"Comida:\n"
+f"  {float(datos_db[0][4])}€\n"
+"Capricho:\n"
+f"  {float(datos_db[0][5])}€\n"
+"Transporte:\n"
+f"  {float(datos_db[0][6])}€\n"
+"Vivienda:\n"
+f"  {float(datos_db[0][7])}€")
+      self.viewMonedero = True
+    else:
+      self.ui.textoMonedero.setPlainText("Ahorro:\n"
+"  xxx€\n"
+"Diezmo:\n"
+"  xxx€\n"
+"Comida:\n"
+"  xxx€\n"
+"Capricho:\n"
+"  xxx€\n"
+"Transporte:\n"
+"  xxx€\n"
+"Vivienda:\n"
+"  xxxx€")
+      self.viewMonedero = False
 
 if __name__ == '__main__':
   print("Iniciando Pempins")

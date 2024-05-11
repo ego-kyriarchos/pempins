@@ -16,6 +16,10 @@
   <property name="windowTitle">
    <string>Movimiento</string>
   </property>
+  <property name="windowIcon">
+   <iconset>
+    <normaloff>../1F4B8_color.png</normaloff>../1F4B8_color.png</iconset>
+  </property>
   <widget class="QWidget" name="formLayoutWidget">
    <property name="geometry">
     <rect>
@@ -107,6 +111,9 @@
        <font>
         <pointsize>11</pointsize>
        </font>
+      </property>
+      <property name="displayFormat">
+       <string>dd/MM/yyyy</string>
       </property>
       <property name="calendarPopup">
        <bool>true</bool>
