@@ -5,7 +5,11 @@ from view.view_winmain import Ui_MainWindow
 from datetime import datetime
 from view.viewIngresoGasto import Ui_IngresarGastar
 from view.viewMovimiento import Ui_Movimiento
+import subprocess
 
+process = subprocess.Popen(['git', 'rev-parse', 'HEAD'], shell=False, stdout=subprocess.PIPE)
+git_head_hash = process.communicate()[0].strip()
+git_head_hash = str(git_head_hash)[2:12]
 class MainWin(QMainWindow):
   def __init__(self):
     super().__init__()
@@ -13,6 +17,7 @@ class MainWin(QMainWindow):
     self.ui = Ui_MainWindow()
     self.ui.setupUi(self)
     self.show()
+    self.ui.pempinsCommit.setText(f"commit: {git_head_hash}")
     self.ui.botonSalir.clicked.connect(lambda:self.close())
     self.ui.botonIngresar.clicked.connect(lambda:self.ingresar())
     self.ui.botonGastar.clicked.connect(lambda:self.gastar())
@@ -250,6 +255,7 @@ class MainWin(QMainWindow):
     if fecha_desde > fecha_hasta:
       QMessageBox.information(self, 'Error', 'La fecha "Desde" no puede ser mayor que la fecha "Hasta"', QMessageBox.StandardButton.Close,QMessageBox.StandardButton.Close)
     else:
+      self.ui.textoHistorial.setPlainText("")
       fecha_hasta = fecha_hasta.__format__("%d/%m/%Y")
       fecha_desde = fecha_desde.__format__("%d/%m/%Y")
       pempins_db = sqlite3.connect("bbdd/pempins.db")
@@ -260,11 +266,40 @@ class MainWin(QMainWindow):
       gastos = pempins_db.fetchall()
       pempins_db.execute("select * FROM movimientos where Fecha BETWEEN ? AND ?;", (fecha_desde, fecha_hasta))
       movimientos = pempins_db.fetchall()
-      print(fecha_hasta, fecha_desde)
-      print(gastos)
-      print(ingresos)
-      print(movimientos)
       pempins_db.close()
+      print(fecha_hasta, fecha_desde)
+      self.ui.textoHistorial.appendPlainText("Ingresos:")
+      for ingreso in ingresos:
+        fecha = ingreso[1]
+        importe = ingreso[2]
+        razon = ingreso[3]
+        tipo = ingreso[4]
+        self.ui.textoHistorial.appendPlainText(f" - {fecha}\n"
+f"        Importe: +{importe}€\n"
+f"        Razon: {razon}\n"
+f"        Aplicado en: {tipo}")
+      self.ui.textoHistorial.appendPlainText("Gastos:")
+      for gasto in gastos:
+        fecha = gasto[1]
+        importe = gasto[2]
+        razon = gasto[3]
+        tipo = gasto[4]
+        self.ui.textoHistorial.appendPlainText(f" - {fecha}\n"
+f"        Importe: -{importe}€\n"
+f"        Razon: {razon}\n"
+f"        Aplicado en: {tipo}")
+      self.ui.textoHistorial.appendPlainText("Movimientos:")
+      for movimiento in movimientos:
+        fecha = movimiento[1]
+        importe = movimiento[2]
+        razon = movimiento[3]
+        origen = movimiento[4]
+        destino = movimiento[5]
+        self.ui.textoHistorial.appendPlainText(f" - {fecha}\n"
+f"        Importe: ♻{importe}€\n"
+f"        Razon: {razon}\n"
+f"        Origen: {origen}\n"
+f"        Destino: {destino}")
 
   def verMonedero(self):
     if self.viewMonedero == False:
