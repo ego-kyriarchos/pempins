@@ -5,3 +5,6 @@ __pycache__
 test*
 untitled*
 *.db
+build
+dist
+main.spec

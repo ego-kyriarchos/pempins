@@ -48,3 +48,6 @@ The money that we record is divided in 6 percentages, distributed in 6 accounts:
 | 30% | Food | For food. |
 
 Also you can move the money between the differents accounts, **is inadvisable to move money from 'Tithe' to another place**. Please don't do that...
+
+# Generate file
+pyinstaller -n "Pempins" --onefile -w --icon=logo/Pempins.png main.py

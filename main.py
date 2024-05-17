@@ -5,6 +5,12 @@ from view.view_winmain import Ui_MainWindow
 from datetime import datetime
 from view.viewIngresoGasto import Ui_IngresarGastar
 from view.viewMovimiento import Ui_Movimiento
+import os
+
+user_home = os.path.expanduser('~')
+if not os.path.exists(f'{user_home}/pempins'):
+  os.makedirs(f'{user_home}/pempins')
+db_path = f"{user_home}/pempins/pempins.db"
 
 class MainWin(QMainWindow):
   def __init__(self):
@@ -33,7 +39,7 @@ class MainWin(QMainWindow):
     self.ui.FechaHasta.setDate(QtCore.QDate(self.year, self.month, self.day))
 
   def check_db(self):
-    pempins_db = sqlite3.connect("bbdd/pempins.db")
+    pempins_db = sqlite3.connect(db_path)
     pempins_db.execute("""
     create table if not exists gastos (
       Id integer primary key autoincrement,
@@ -77,7 +83,7 @@ class MainWin(QMainWindow):
     pempins_db.close()
 
   def guardar_cache_en_bbdd(self):
-    pempins_db = sqlite3.connect("bbdd/pempins.db")
+    pempins_db = sqlite3.connect(db_path)
     for id, datos in self.cached_mem.items():
       if datos["tipo"] == "ingreso":
         print("insertando en la tabla ingresos")
@@ -103,7 +109,7 @@ class MainWin(QMainWindow):
     pempins_db.close()
 
   def calcular_porcentages(self):
-    pempins_db = sqlite3.connect("bbdd/pempins.db")
+    pempins_db = sqlite3.connect(db_path)
     pempins_db = pempins_db.cursor()
     pempins_db.execute("select * from cuentas order by id desc limit 1;")
     datos_db = pempins_db.fetchall()
@@ -144,7 +150,7 @@ class MainWin(QMainWindow):
 
     now = datetime.now()
     fecha = now.strftime("%d/%m/%Y")
-    pempins_db = sqlite3.connect("bbdd/pempins.db")
+    pempins_db = sqlite3.connect(db_path)
     pempins_db.execute("""insert into cuentas (Fecha,Diezmo,Ahorro,Comida,Capricho,Transporte,Vivienda)
     values (?,?,?,?,?,?,?)""", (fecha,datos_dict["Diezmo"], datos_dict["Ahorro"], datos_dict["Comida"], datos_dict["Capricho"], datos_dict["Transporte"], datos_dict["Vivienda"]))
     pempins_db.commit()
@@ -251,7 +257,7 @@ class MainWin(QMainWindow):
       QMessageBox.information(self, 'Error', 'La fecha "Desde" no puede ser mayor que la fecha "Hasta"', QMessageBox.StandardButton.Close,QMessageBox.StandardButton.Close)
     else:
       self.ui.textoHistorial.setPlainText("")
-      pempins_db = sqlite3.connect("bbdd/pempins.db")
+      pempins_db = sqlite3.connect(db_path)
       pempins_db = pempins_db.cursor()
       pempins_db.execute(f"select * FROM ingresos where Fecha BETWEEN '{fecha_desde}' AND '{fecha_hasta}';")
       ingresos = pempins_db.fetchall()
@@ -296,7 +302,7 @@ f"        Destino: {destino}")
 
   def verMonedero(self):
     if self.viewMonedero == False:
-      pempins_db = sqlite3.connect("bbdd/pempins.db")
+      pempins_db = sqlite3.connect(db_path)
       pempins_db = pempins_db.cursor()
       pempins_db.execute("select * from cuentas order by id desc limit 1;")
       datos_db = pempins_db.fetchall()
