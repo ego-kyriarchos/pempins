@@ -15,7 +15,7 @@
   </property>
   <property name="windowIcon">
    <iconset>
-    <normaloff>../1F4B8_color.png</normaloff>../1F4B8_color.png</iconset>
+    <normaloff>../logo/Pempins.png</normaloff>../logo/Pempins.png</iconset>
   </property>
   <widget class="QWidget" name="centralwidget">
    <widget class="QWidget" name="verticalLayoutWidget">
@@ -129,27 +129,14 @@
    <widget class="QLabel" name="versionPempins">
     <property name="geometry">
      <rect>
-      <x>20</x>
-      <y>540</y>
+      <x>10</x>
+      <y>550</y>
       <width>91</width>
       <height>20</height>
      </rect>
     </property>
     <property name="text">
      <string>Pempins: v1</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="pempinsCommit">
-    <property name="geometry">
-     <rect>
-      <x>20</x>
-      <y>560</y>
-      <width>171</width>
-      <height>20</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>commit: 234121f2fefwfr</string>
     </property>
    </widget>
    <widget class="QGroupBox" name="boxBusquedaPorFecha">

@@ -5,11 +5,7 @@ from view.view_winmain import Ui_MainWindow
 from datetime import datetime
 from view.viewIngresoGasto import Ui_IngresarGastar
 from view.viewMovimiento import Ui_Movimiento
-import subprocess
 
-process = subprocess.Popen(['git', 'rev-parse', 'HEAD'], shell=False, stdout=subprocess.PIPE)
-git_head_hash = process.communicate()[0].strip()
-git_head_hash = str(git_head_hash)[2:12]
 class MainWin(QMainWindow):
   def __init__(self):
     super().__init__()
@@ -17,7 +13,6 @@ class MainWin(QMainWindow):
     self.ui = Ui_MainWindow()
     self.ui.setupUi(self)
     self.show()
-    self.ui.pempinsCommit.setText(f"commit: {git_head_hash}")
     self.ui.botonSalir.clicked.connect(lambda:self.close())
     self.ui.botonIngresar.clicked.connect(lambda:self.ingresar())
     self.ui.botonGastar.clicked.connect(lambda:self.gastar())
@@ -200,7 +195,7 @@ class MainWin(QMainWindow):
     timestamp = timestamp.timestamp()
     if self.check and tipo in ["ingreso", "gasto"] :
       importe = float(ui.lineEditImporte.text())
-      fecha = ui.dateEditFecha.text()
+      fecha = datetime.strptime(ui.dateEditFecha.text(), '%d/%m/%Y').strftime('%Y-%m-%d')
       razon = ui.lineEditRazon.text()
       cuenta = ui.comboBoxAplicarEn.currentText()
       self.cached_mem[timestamp] = {"fecha": fecha, "importe": importe, "razon": razon, "cuenta": cuenta, "tipo": tipo}
@@ -212,7 +207,7 @@ class MainWin(QMainWindow):
     elif self.check and tipo == "movimiento":
       print(tipo, 'movimiento')
       importe = float(ui.lineEditImporte.text())
-      fecha = ui.dateEditFecha.text()
+      fecha = datetime.strptime(ui.dateEditFecha.text(), '%d/%m/%Y').strftime('%Y-%m-%d')
       razon = ui.lineEditRazon.text()
       destino = ui.comboBoxDestino.currentText()
       origen = ui.comboBoxOrigen.currentText()
@@ -249,38 +244,36 @@ class MainWin(QMainWindow):
   def buscar(self):
     fecha_desde = self.ui.FechaDesde.text()
     fecha_hasta = self.ui.FechaHasta.text()
-    fecha_desde = datetime.strptime(fecha_desde, "%d/%m/%Y")
-    fecha_hasta = datetime.strptime(fecha_hasta, "%d/%m/%Y")
+    fecha_desde = datetime.strptime(fecha_desde, "%d/%m/%Y").strftime('%Y-%m-%d')
+    fecha_hasta = datetime.strptime(fecha_hasta, "%d/%m/%Y").strftime('%Y-%m-%d')
 
     if fecha_desde > fecha_hasta:
       QMessageBox.information(self, 'Error', 'La fecha "Desde" no puede ser mayor que la fecha "Hasta"', QMessageBox.StandardButton.Close,QMessageBox.StandardButton.Close)
     else:
       self.ui.textoHistorial.setPlainText("")
-      fecha_hasta = fecha_hasta.__format__("%d/%m/%Y")
-      fecha_desde = fecha_desde.__format__("%d/%m/%Y")
       pempins_db = sqlite3.connect("bbdd/pempins.db")
       pempins_db = pempins_db.cursor()
-      pempins_db.execute("select * FROM ingresos where Fecha BETWEEN ? AND ?;", (fecha_desde, fecha_hasta))
+      pempins_db.execute(f"select * FROM ingresos where Fecha BETWEEN '{fecha_desde}' AND '{fecha_hasta}';")
       ingresos = pempins_db.fetchall()
-      pempins_db.execute("select * FROM gastos where Fecha BETWEEN ? AND ?;", (fecha_desde, fecha_hasta))
+      pempins_db.execute(f"select * FROM gastos where Fecha BETWEEN '{fecha_desde}' AND '{fecha_hasta}';")
       gastos = pempins_db.fetchall()
-      pempins_db.execute("select * FROM movimientos where Fecha BETWEEN ? AND ?;", (fecha_desde, fecha_hasta))
+      pempins_db.execute(f"select * FROM movimientos where Fecha BETWEEN '{fecha_desde}' AND '{fecha_hasta}';")
       movimientos = pempins_db.fetchall()
       pempins_db.close()
       print(fecha_hasta, fecha_desde)
       self.ui.textoHistorial.appendPlainText("Ingresos:")
       for ingreso in ingresos:
-        fecha = ingreso[1]
         importe = ingreso[2]
         razon = ingreso[3]
         tipo = ingreso[4]
+        fecha = datetime.strptime(ingreso[1], '%Y-%m-%d').strftime('%d/%m/%Y')
         self.ui.textoHistorial.appendPlainText(f" - {fecha}\n"
 f"        Importe: +{importe}€\n"
 f"        Razon: {razon}\n"
 f"        Aplicado en: {tipo}")
       self.ui.textoHistorial.appendPlainText("Gastos:")
       for gasto in gastos:
-        fecha = gasto[1]
+        fecha = datetime.strptime(gasto[1], '%Y-%m-%d').strftime('%d/%m/%Y')
         importe = gasto[2]
         razon = gasto[3]
         tipo = gasto[4]
@@ -290,7 +283,7 @@ f"        Razon: {razon}\n"
 f"        Aplicado en: {tipo}")
       self.ui.textoHistorial.appendPlainText("Movimientos:")
       for movimiento in movimientos:
-        fecha = movimiento[1]
+        fecha = datetime.strptime(movimiento[1], '%Y-%m-%d').strftime('%d/%m/%Y')
         importe = movimiento[2]
         razon = movimiento[3]
         origen = movimiento[4]
@@ -307,6 +300,8 @@ f"        Destino: {destino}")
       pempins_db = pempins_db.cursor()
       pempins_db.execute("select * from cuentas order by id desc limit 1;")
       datos_db = pempins_db.fetchall()
+      if datos_db == []:
+        datos_db =[(0,0,0,0,0,0,0,0)]
       pempins_db.close()
       self.ui.textoMonedero.setPlainText("Ahorro:\n"
 f"  {float(datos_db[0][3])}€\n"

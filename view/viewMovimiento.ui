@@ -18,7 +18,7 @@
   </property>
   <property name="windowIcon">
    <iconset>
-    <normaloff>../1F4B8_color.png</normaloff>../1F4B8_color.png</iconset>
+    <normaloff>../logo/Pempins.png</normaloff>../logo/Pempins.png</iconset>
   </property>
   <widget class="QWidget" name="formLayoutWidget">
    <property name="geometry">

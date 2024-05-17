@@ -15,7 +15,7 @@ class Ui_Movimiento(object):
         Movimiento.setWindowModality(QtCore.Qt.WindowModality.WindowModal)
         Movimiento.resize(289, 259)
         icon = QtGui.QIcon()
-        icon.addPixmap(QtGui.QPixmap("view/../1F4B8_color.png"), QtGui.QIcon.Mode.Normal, QtGui.QIcon.State.Off)
+        icon.addPixmap(QtGui.QPixmap("view/../logo/Pempins.png"), QtGui.QIcon.Mode.Normal, QtGui.QIcon.State.Off)
         Movimiento.setWindowIcon(icon)
         self.formLayoutWidget = QtWidgets.QWidget(parent=Movimiento)
         self.formLayoutWidget.setGeometry(QtCore.QRect(10, 10, 271, 181))

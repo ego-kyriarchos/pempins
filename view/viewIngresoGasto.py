@@ -15,7 +15,7 @@ class Ui_IngresarGastar(object):
         IngresarGastar.setWindowModality(QtCore.Qt.WindowModality.WindowModal)
         IngresarGastar.resize(289, 219)
         icon = QtGui.QIcon()
-        icon.addPixmap(QtGui.QPixmap("view/../1F4B8_color.png"), QtGui.QIcon.Mode.Normal, QtGui.QIcon.State.Off)
+        icon.addPixmap(QtGui.QPixmap("view/../logo/Pempins.png"), QtGui.QIcon.Mode.Normal, QtGui.QIcon.State.Off)
         IngresarGastar.setWindowIcon(icon)
         self.horizontalLayoutWidget = QtWidgets.QWidget(parent=IngresarGastar)
         self.horizontalLayoutWidget.setGeometry(QtCore.QRect(10, 160, 271, 51))
