@@ -160,44 +160,44 @@ class MainWin(QMainWindow):
 
   def ingresar(self):
     self.ingreso = QtWidgets.QMainWindow()
-    self.ui = Ui_IngresarGastar()
-    self.ui.setupUi(self.ingreso)
+    self.ui_ingresar = Ui_IngresarGastar()
+    self.ui_ingresar.setupUi(self.ingreso)
     self.ingreso.show()
-    self.ui.dateEditFecha.setDate(QtCore.QDate(self.year, self.month, self.day))
-    self.ui.comboBoxAplicarEn.addItems(self.lista_tipos_de_registro)
-    self.ui.pushButtonCancelar.clicked.connect(lambda:self.ingreso.close())
-    self.ui.pushButtonGuardarEnCache.clicked.connect(lambda:self.guardarEnCache("ingreso"))
+    self.ui_ingresar.dateEditFecha.setDate(QtCore.QDate(self.year, self.month, self.day))
+    self.ui_ingresar.comboBoxAplicarEn.addItems(self.lista_tipos_de_registro)
+    self.ui_ingresar.pushButtonCancelar.clicked.connect(lambda:self.ingreso.close())
+    self.ui_ingresar.pushButtonGuardarEnCache.clicked.connect(lambda:self.guardarEnCache("ingreso", self.ui_ingresar))
 
   def gastar(self):
     self.gasto = QtWidgets.QMainWindow()
-    self.ui = Ui_IngresarGastar()
-    self.ui.setupUi(self.gasto)
-    self.ui.comboBoxAplicarEn.addItems(self.lista_tipos_de_registro)
+    self.ui_gastar = Ui_IngresarGastar()
+    self.ui_gastar.setupUi(self.gasto)
+    self.ui_gastar.comboBoxAplicarEn.addItems(self.lista_tipos_de_registro)
     self.gasto.show()
-    self.ui.dateEditFecha.setDate(QtCore.QDate(self.year, self.month, self.day))
-    self.ui.pushButtonCancelar.clicked.connect(lambda:self.gasto.close())
-    self.ui.pushButtonGuardarEnCache.clicked.connect(lambda:self.guardarEnCache("gasto"))
+    self.ui_gastar.dateEditFecha.setDate(QtCore.QDate(self.year, self.month, self.day))
+    self.ui_gastar.pushButtonCancelar.clicked.connect(lambda:self.gasto.close())
+    self.ui_gastar.pushButtonGuardarEnCache.clicked.connect(lambda:self.guardarEnCache("gasto", self.ui_gastar))
 
   def mover(self):
     self.movimiento = QtWidgets.QMainWindow()
-    self.ui = Ui_Movimiento()
-    self.ui.setupUi(self.movimiento)
-    self.ui.comboBoxOrigen.addItems(self.lista_tipos_de_registro[:-1])
-    self.ui.comboBoxDestino.addItems(self.lista_tipos_de_registro[:-1])
+    self.ui_mover = Ui_Movimiento()
+    self.ui_mover.setupUi(self.movimiento)
+    self.ui_mover.comboBoxOrigen.addItems(self.lista_tipos_de_registro[:-1])
+    self.ui_mover.comboBoxDestino.addItems(self.lista_tipos_de_registro[:-1])
     self.movimiento.show()
-    self.ui.dateEditFecha.setDate(QtCore.QDate(self.year, self.month, self.day))
-    self.ui.pushButtonGuardarEnCache.clicked.connect(lambda:self.guardarEnCache("movimiento"))
-    self.ui.pushButtonCancelar.clicked.connect(lambda:self.movimiento.close())
+    self.ui_mover.dateEditFecha.setDate(QtCore.QDate(self.year, self.month, self.day))
+    self.ui_mover.pushButtonGuardarEnCache.clicked.connect(lambda:self.guardarEnCache("movimiento" , self.ui_mover))
+    self.ui_mover.pushButtonCancelar.clicked.connect(lambda:self.movimiento.close())
 
-  def guardarEnCache(self, tipo):
-    self.checkGuardadoEnCache(tipo)
+  def guardarEnCache(self, tipo, ui):
+    self.checkGuardadoEnCache(tipo, ui)
     timestamp = datetime.now()
     timestamp = timestamp.timestamp()
     if self.check and tipo in ["ingreso", "gasto"] :
-      importe = float(self.ui.lineEditImporte.text())
-      fecha = self.ui.dateEditFecha.text()
-      razon = self.ui.lineEditRazon.text()
-      cuenta = self.ui.comboBoxAplicarEn.currentText()
+      importe = float(ui.lineEditImporte.text())
+      fecha = ui.dateEditFecha.text()
+      razon = ui.lineEditRazon.text()
+      cuenta = ui.comboBoxAplicarEn.currentText()
       self.cached_mem[timestamp] = {"fecha": fecha, "importe": importe, "razon": razon, "cuenta": cuenta, "tipo": tipo}
       print(self.cached_mem)
       if tipo == "ingreso":
@@ -206,25 +206,25 @@ class MainWin(QMainWindow):
         self.gasto.close()
     elif self.check and tipo == "movimiento":
       print(tipo, 'movimiento')
-      importe = float(self.ui.lineEditImporte.text())
-      fecha = self.ui.dateEditFecha.text()
-      razon = self.ui.lineEditRazon.text()
-      destino = self.ui.comboBoxDestino.currentText()
-      origen = self.ui.comboBoxOrigen.currentText()
+      importe = float(ui.lineEditImporte.text())
+      fecha = ui.dateEditFecha.text()
+      razon = ui.lineEditRazon.text()
+      destino = ui.comboBoxDestino.currentText()
+      origen = ui.comboBoxOrigen.currentText()
       self.cached_mem[timestamp] = {"fecha": fecha, "importe": importe, "razon": razon, "origen": origen, "destino": destino, "tipo": tipo}
       print(self.cached_mem)
       self.movimiento.close()
 
-  def checkGuardadoEnCache(self, tipo):
+  def checkGuardadoEnCache(self, tipo, ui):
     self.check = False
     contador = 0
     try:
-      float(self.ui.lineEditImporte.text())
+      float(ui.lineEditImporte.text())
       contador += 1
     except:
       QMessageBox.information(self, 'Error', "Debes de escribir un numero. Ej: 12.00", QMessageBox.StandardButton.Close,QMessageBox.StandardButton.Close)
 
-    razon = self.ui.lineEditRazon.text()
+    razon = ui.lineEditRazon.text()
     if len(razon) > 30:
       QMessageBox.information(self, 'Error', "La razon debe de ser menos de 30 caracteres", QMessageBox.StandardButton.Close,QMessageBox.StandardButton.Close)
     else:
@@ -233,7 +233,7 @@ class MainWin(QMainWindow):
     if contador == 2 and tipo in ["gasto", "ingreso"]:
       self.check = True
     else:
-      if self.ui.comboBoxOrigen.currentText() == self.ui.comboBoxDestino.currentText():
+      if ui.comboBoxOrigen.currentText() == ui.comboBoxDestino.currentText():
         QMessageBox.information(self, 'Error', "Origen y destino no puede ser iguales", QMessageBox.StandardButton.Close,QMessageBox.StandardButton.Close)
       else:  
         contador += 1
