@@ -170,7 +170,7 @@ class MainWin(QMainWindow):
     self.ui_ingresar.setupUi(self.ingreso)
     self.ingreso.show()
     self.ui_ingresar.dateEditFecha.setDate(QtCore.QDate(self.year, self.month, self.day))
-    self.ui_ingresar.comboBoxAplicarEn.addItems(self.lista_tipos_de_registro)
+    self.ui_ingresar.comboBoxAplicarEn.addItems(self.lista_tipos_de_registro[-1:] + self.lista_tipos_de_registro[:-1])
     self.ui_ingresar.pushButtonCancelar.clicked.connect(lambda:self.ingreso.close())
     self.ui_ingresar.pushButtonGuardarEnCache.clicked.connect(lambda:self.guardarEnCache("ingreso", self.ui_ingresar))
 
@@ -178,7 +178,7 @@ class MainWin(QMainWindow):
     self.gasto = QtWidgets.QMainWindow()
     self.ui_gastar = Ui_IngresarGastar()
     self.ui_gastar.setupUi(self.gasto)
-    self.ui_gastar.comboBoxAplicarEn.addItems(self.lista_tipos_de_registro)
+    self.ui_gastar.comboBoxAplicarEn.addItems(self.lista_tipos_de_registro[1:-1]) # Sin diezmo y sin Todos
     self.gasto.show()
     self.ui_gastar.dateEditFecha.setDate(QtCore.QDate(self.year, self.month, self.day))
     self.ui_gastar.pushButtonCancelar.clicked.connect(lambda:self.gasto.close())
@@ -188,8 +188,8 @@ class MainWin(QMainWindow):
     self.movimiento = QtWidgets.QMainWindow()
     self.ui_mover = Ui_Movimiento()
     self.ui_mover.setupUi(self.movimiento)
-    self.ui_mover.comboBoxOrigen.addItems(self.lista_tipos_de_registro[:-1])
-    self.ui_mover.comboBoxDestino.addItems(self.lista_tipos_de_registro[:-1])
+    self.ui_mover.comboBoxOrigen.addItems(self.lista_tipos_de_registro[1:-1]) # Sin diezmo y sin Todos
+    self.ui_mover.comboBoxDestino.addItems(self.lista_tipos_de_registro[1:-1]) # Sin diezmo y sin Todos
     self.movimiento.show()
     self.ui_mover.dateEditFecha.setDate(QtCore.QDate(self.year, self.month, self.day))
     self.ui_mover.pushButtonGuardarEnCache.clicked.connect(lambda:self.guardarEnCache("movimiento" , self.ui_mover))
