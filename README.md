@@ -24,10 +24,15 @@ Cada uno de esas cuentas tiene un uso diferente y se debe de estimar en cuanto l
 
 PD: Si no gastas dinero al final de mes este se ira acumulando, no lo perderas.
 
-Tambien puedes mover dinero de una cuenta a otra. Pero por favor **no muevas dinero de la cuenta Diezmo a otra, no es aconsejable ya que violaria una de las reglas**.
+Tambien puedes mover dinero de una cuenta a otra.
 
 ## Comando para generar ejecutable
 pyinstaller -n "Pempins" --onefile -w --icon=logo/Pempins.png main.py
+
+## Base de datos
+Este programa usa sqlite3, la base de datos se guarda sin cifrar en tu carpeta de usuario
+En Windows: C:\Users\Usuario\pempins\pempins.db
+En Linux: /home/usaurio/pempins/pempins.db
 
 # ₽€₼₱៛N$ (Pempins) 🇬🇧|🇺🇸
 
@@ -50,7 +55,12 @@ The money that we record is divided in 6 percentages, distributed in 6 accounts:
 | 22% | Living | For Renting/mortgage, light, gas, water, etc. |
 | 30% | Food | For food. |
 
-Also you can move the money between the differents accounts, **is inadvisable to move money from 'Tithe' to another place**. Please don't do that...
+Also you can move the money between the differents accounts.
 
 ## Generate executable file
 pyinstaller -n "Pempins" --onefile -w --icon=logo/Pempins.png main.py
+
+## Database
+The databae used is sqlite3, it saves without encryption in your user folder.
+Windows: C:\Users\User\pempins\pempins.db
+Linux: /home/user/pempins/pempins.db
