@@ -78,7 +78,8 @@ class MainWin(QMainWindow):
       Comida real,
       Capricho real,
       Transporte real,
-      Vivienda real
+      Vivienda real,
+      Total real
     )""")
 
     pempins_db.close()
@@ -152,8 +153,9 @@ class MainWin(QMainWindow):
     now = datetime.now()
     fecha = now.strftime("%d/%m/%Y")
     pempins_db = sqlite3.connect(db_path)
-    pempins_db.execute("""insert into cuentas (Fecha,Diezmo,Ahorro,Comida,Capricho,Transporte,Vivienda)
-    values (?,?,?,?,?,?,?)""", (fecha,datos_dict["Diezmo"], datos_dict["Ahorro"], datos_dict["Comida"], datos_dict["Capricho"], datos_dict["Transporte"], datos_dict["Vivienda"]))
+    total = datos_dict["Diezmo"] + datos_dict["Ahorro"] + datos_dict["Comida"] + datos_dict["Capricho"] + datos_dict["Transporte"] + datos_dict["Vivienda"]
+    pempins_db.execute("""insert into cuentas (Fecha,Diezmo,Ahorro,Comida,Capricho,Transporte,Vivienda,Total)
+    values (?,?,?,?,?,?,?,?)""", (fecha,datos_dict["Diezmo"], datos_dict["Ahorro"], datos_dict["Comida"], datos_dict["Capricho"], datos_dict["Transporte"], datos_dict["Vivienda"], total))
     pempins_db.commit()
     pempins_db.close()
 
@@ -307,9 +309,9 @@ f"        Destino: {destino}")
       pempins_db = pempins_db.cursor()
       pempins_db.execute("select * from cuentas order by id desc limit 1;")
       datos_db = pempins_db.fetchall()
-      if datos_db == []:
-        datos_db =[(0,0,0,0,0,0,0,0)]
       pempins_db.close()
+      if datos_db == []:
+        datos_db =[(0,0,0,0,0,0,0,0,0)]
       self.ui.textoMonedero.setPlainText("Ahorro:\n"
 f"  {float(datos_db[0][3])}€\n"
 "Diezmo:\n"
@@ -321,7 +323,9 @@ f"  {float(datos_db[0][5])}€\n"
 "Transporte:\n"
 f"  {float(datos_db[0][6])}€\n"
 "Vivienda:\n"
-f"  {float(datos_db[0][7])}€")
+f"  {float(datos_db[0][7])}€\n"
+"Total:\n"
+f"  {float(datos_db[0][8])}€")
       self.viewMonedero = True
     else:
       self.ui.textoMonedero.setPlainText("Ahorro:\n"
@@ -335,6 +339,8 @@ f"  {float(datos_db[0][7])}€")
 "Transporte:\n"
 "  xxx€\n"
 "Vivienda:\n"
+"  xxxx€\n"
+"Total:\n"
 "  xxxx€")
       self.viewMonedero = False
 

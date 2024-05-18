@@ -31,8 +31,20 @@ pyinstaller -n "Pempins" --onefile -w --icon=logo/Pempins.png main.py
 
 ## Base de datos
 Este programa usa sqlite3, la base de datos se guarda sin cifrar en tu carpeta de usuario
+
 En Windows: C:\Users\Usuario\pempins\pempins.db
+
 En Linux: /home/usaurio/pempins/pempins.db
+
+## Propositos
+
+- [x] Mover, ingresar y gastar dinero
+- [x] Mostrar cantidad actual
+- [x] Busqueda de movimientos, ingresos o gastos
+- [ ] Añadir seguridad para cifrado del sqlite3
+- [ ] Añadir grafica en el Historial
+- [ ] Añadir soporte para Ingles
+
 
 # ₽€₼₱៛N$ (Pempins) 🇬🇧|🇺🇸
 
