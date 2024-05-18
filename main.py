@@ -19,6 +19,7 @@ class MainWin(QMainWindow):
     self.ui = Ui_MainWindow()
     self.ui.setupUi(self)
     self.show()
+    self.ui.versionPempins.setText('Version: v0.1')
     self.ui.botonSalir.clicked.connect(lambda:self.close())
     self.ui.botonIngresar.clicked.connect(lambda:self.ingresar())
     self.ui.botonGastar.clicked.connect(lambda:self.gastar())
