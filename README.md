@@ -9,7 +9,7 @@ Insipirado por: https://youtu.be/p_1vri6HXus?si=F0qt1SyJIP1FzCgf
 ## ¿Para que sirve?
 Este programa esta pensado para ahorrar dinero.
 
-E dinero que ingresamos se divide en 6 cuentas distribuido el dinero en en porcentages.
+El dinero que ingresamos se divide en 6 cuentas distribuido en porcentages.
 
 Cada uno de esas cuentas tiene un uso diferente y se debe de estimar en cuanto lo que ganamos con nuestra unica fuente de ingresos a.k.a nuestro salario.
 
@@ -25,6 +25,9 @@ Cada uno de esas cuentas tiene un uso diferente y se debe de estimar en cuanto l
 PD: Si no gastas dinero al final de mes este se ira acumulando, no lo perderas.
 
 Tambien puedes mover dinero de una cuenta a otra. Pero por favor **no muevas dinero de la cuenta Diezmo a otra, no es aconsejable ya que violaria una de las reglas**.
+
+## Comando para generar ejecutable
+pyinstaller -n "Pempins" --onefile -w --icon=logo/Pempins.png main.py
 
 # ₽€₼₱៛N$ (Pempins) 🇬🇧|🇺🇸
 
@@ -49,5 +52,5 @@ The money that we record is divided in 6 percentages, distributed in 6 accounts:
 
 Also you can move the money between the differents accounts, **is inadvisable to move money from 'Tithe' to another place**. Please don't do that...
 
-# Generate file
+## Generate executable file
 pyinstaller -n "Pempins" --onefile -w --icon=logo/Pempins.png main.py
