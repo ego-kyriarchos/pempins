@@ -19,7 +19,7 @@ class MainWin(QMainWindow):
     self.ui = Ui_MainWindow()
     self.ui.setupUi(self)
     self.show()
-    self.ui.versionPempins.setText('Version: v0.1')
+    self.ui.versionPempins.setText('Version: v0.1.1')
     self.ui.botonSalir.clicked.connect(lambda:self.close())
     self.ui.botonIngresar.clicked.connect(lambda:self.ingresar())
     self.ui.botonGastar.clicked.connect(lambda:self.gastar())
@@ -153,7 +153,7 @@ class MainWin(QMainWindow):
     now = datetime.now()
     fecha = now.strftime("%d/%m/%Y")
     pempins_db = sqlite3.connect(db_path)
-    total = datos_dict["Diezmo"] + datos_dict["Ahorro"] + datos_dict["Comida"] + datos_dict["Capricho"] + datos_dict["Transporte"] + datos_dict["Vivienda"]
+    total = round(datos_dict["Diezmo"] + datos_dict["Ahorro"] + datos_dict["Comida"] + datos_dict["Capricho"] + datos_dict["Transporte"] + datos_dict["Vivienda"],2)
     pempins_db.execute("""insert into cuentas (Fecha,Diezmo,Ahorro,Comida,Capricho,Transporte,Vivienda,Total)
     values (?,?,?,?,?,?,?,?)""", (fecha,datos_dict["Diezmo"], datos_dict["Ahorro"], datos_dict["Comida"], datos_dict["Capricho"], datos_dict["Transporte"], datos_dict["Vivienda"], total))
     pempins_db.commit()
@@ -200,55 +200,50 @@ class MainWin(QMainWindow):
 
   def guardarEnCache(self, tipo, ui):
     self.checkGuardadoEnCache(tipo, ui)
-    timestamp = datetime.now()
-    timestamp = timestamp.timestamp()
-    if self.check and tipo in ["ingreso", "gasto"] :
-      importe = float(ui.lineEditImporte.text())
-      fecha = datetime.strptime(ui.dateEditFecha.text(), '%d/%m/%Y').strftime('%Y-%m-%d')
-      razon = ui.lineEditRazon.text()
-      cuenta = ui.comboBoxAplicarEn.currentText()
-      self.cached_mem[timestamp] = {"fecha": fecha, "importe": importe, "razon": razon, "cuenta": cuenta, "tipo": tipo}
-      print(self.cached_mem)
-      if tipo == "ingreso":
-        self.ingreso.close()
-      else:
-        self.gasto.close()
-    elif self.check and tipo == "movimiento":
-      print(tipo, 'movimiento')
-      importe = float(ui.lineEditImporte.text())
-      fecha = datetime.strptime(ui.dateEditFecha.text(), '%d/%m/%Y').strftime('%Y-%m-%d')
-      razon = ui.lineEditRazon.text()
-      destino = ui.comboBoxDestino.currentText()
-      origen = ui.comboBoxOrigen.currentText()
-      self.cached_mem[timestamp] = {"fecha": fecha, "importe": importe, "razon": razon, "origen": origen, "destino": destino, "tipo": tipo}
-      print(self.cached_mem)
-      self.movimiento.close()
+    if self.check:
+      timestamp = datetime.now()
+      timestamp = timestamp.timestamp()
+      if self.check and tipo in ["ingreso", "gasto"] :
+        importe = float(ui.lineEditImporte.text())
+        fecha = datetime.strptime(ui.dateEditFecha.text(), '%d/%m/%Y').strftime('%Y-%m-%d')
+        razon = ui.lineEditRazon.text()
+        cuenta = ui.comboBoxAplicarEn.currentText()
+        self.cached_mem[timestamp] = {"fecha": fecha, "importe": importe, "razon": razon, "cuenta": cuenta, "tipo": tipo}
+        print(self.cached_mem)
+        if tipo == "ingreso":
+          self.ingreso.close()
+        else:
+          self.gasto.close()
+      elif self.check and tipo == "movimiento":
+        print(tipo, 'movimiento')
+        importe = float(ui.lineEditImporte.text())
+        fecha = datetime.strptime(ui.dateEditFecha.text(), '%d/%m/%Y').strftime('%Y-%m-%d')
+        razon = ui.lineEditRazon.text()
+        destino = ui.comboBoxDestino.currentText()
+        origen = ui.comboBoxOrigen.currentText()
+        self.cached_mem[timestamp] = {"fecha": fecha, "importe": importe, "razon": razon, "origen": origen, "destino": destino, "tipo": tipo}
+        print(self.cached_mem)
+        self.movimiento.close()
 
   def checkGuardadoEnCache(self, tipo, ui):
-    self.check = False
-    contador = 0
+    self.check = True
     try:
-      float(ui.lineEditImporte.text())
-      contador += 1
+      if float(ui.lineEditImporte.text()) <= 0:
+        raise Exception
+        #QMessageBox.information(self, 'Error', "Debes de escribir un numero positivo. Ej: 12.00", QMessageBox.StandardButton.Close,QMessageBox.StandardButton.Close)
     except:
       QMessageBox.information(self, 'Error', "Debes de escribir un numero. Ej: 12.00", QMessageBox.StandardButton.Close,QMessageBox.StandardButton.Close)
+      self.check = False
 
     razon = ui.lineEditRazon.text()
     if len(razon) > 30:
       QMessageBox.information(self, 'Error', "La razon debe de ser menos de 30 caracteres", QMessageBox.StandardButton.Close,QMessageBox.StandardButton.Close)
-    else:
-      contador += 1
+      self.check = False
 
-    if contador == 2 and tipo in ["gasto", "ingreso"]:
-      self.check = True
-    else:
+    if tipo == "movimiento":
       if ui.comboBoxOrigen.currentText() == ui.comboBoxDestino.currentText():
         QMessageBox.information(self, 'Error', "Origen y destino no puede ser iguales", QMessageBox.StandardButton.Close,QMessageBox.StandardButton.Close)
-      else:  
-        contador += 1
-
-    if contador == 3 and tipo == "movimiento":
-      self.check = True
+        self.check = False
     
   def buscar(self):
     fecha_desde = self.ui.FechaDesde.text()
