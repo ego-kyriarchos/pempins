@@ -6,6 +6,8 @@ Creado por: Rubén Méndez Hernández a.k.a _ego-kyriarchos_
 
 Insipirado por: https://youtu.be/p_1vri6HXus?si=F0qt1SyJIP1FzCgf
 
+Video explicativo: https://www.youtube.com/watch?v=ERs8uNj7mHQ
+
 ## ¿Para que sirve?
 Este programa esta pensado para ahorrar dinero.
 
