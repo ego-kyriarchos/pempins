@@ -68,7 +68,7 @@ class Ui_MainWindow(object):
         self.textoHistorial.setFocusPolicy(QtCore.Qt.FocusPolicy.NoFocus)
         self.textoHistorial.setObjectName("textoHistorial")
         self.versionPempins = QtWidgets.QLabel(parent=self.centralwidget)
-        self.versionPempins.setGeometry(QtCore.QRect(210, 530, 71, 20))
+        self.versionPempins.setGeometry(QtCore.QRect(210, 530, 141, 20))
         self.versionPempins.setObjectName("versionPempins")
         self.boxBusquedaPorFecha = QtWidgets.QGroupBox(parent=self.centralwidget)
         self.boxBusquedaPorFecha.setGeometry(QtCore.QRect(210, 30, 301, 131))
