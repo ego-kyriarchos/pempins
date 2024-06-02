@@ -5,12 +5,14 @@ from view.view_winmain import Ui_MainWindow
 from datetime import datetime
 from view.viewIngresoGasto import Ui_IngresarGastar
 from view.viewMovimiento import Ui_Movimiento
+from view.viewGrafica import Ui_Grafica
 import os
 
 user_home = os.path.expanduser('~')
 if not os.path.exists(f'{user_home}/pempins'):
   os.makedirs(f'{user_home}/pempins')
-db_path = f"{user_home}/pempins/pempins.db"
+#db_path = f"{user_home}/pempins/pempins.db"
+db_path = 'pempins.db'
 
 class MainWin(QMainWindow):
   def __init__(self):
@@ -19,7 +21,7 @@ class MainWin(QMainWindow):
     self.ui = Ui_MainWindow()
     self.ui.setupUi(self)
     self.show()
-    self.ui.versionPempins.setText('Version: v0.1.1')
+    self.ui.versionPempins.setText('Version: v0.2')
     self.ui.botonSalir.clicked.connect(lambda:self.close())
     self.ui.botonIngresar.clicked.connect(lambda:self.ingresar())
     self.ui.botonGastar.clicked.connect(lambda:self.gastar())
@@ -27,6 +29,7 @@ class MainWin(QMainWindow):
     self.ui.botonGuardarCambios.clicked.connect(lambda:self.guardar())
     self.ui.botonVerMonedero.clicked.connect(lambda:self.verMonedero())
     self.ui.botonBuscar.clicked.connect(lambda:self.buscar())
+    self.ui.botonGrafica.clicked.connect(lambda:self.grafica_view())
     
     self.cached_mem = {}
     self.viewMonedero = False
@@ -176,6 +179,29 @@ class MainWin(QMainWindow):
     self.ui_ingresar.comboBoxAplicarEn.addItems(self.lista_tipos_de_registro[-1:] + self.lista_tipos_de_registro[:-1])
     self.ui_ingresar.pushButtonCancelar.clicked.connect(lambda:self.ingreso.close())
     self.ui_ingresar.pushButtonGuardarEnCache.clicked.connect(lambda:self.guardarEnCache("ingreso", self.ui_ingresar))
+
+  def grafica_view(self):
+    self.grafica = QtWidgets.QMainWindow()
+    self.ui_grafica = Ui_Grafica()
+    self.ui_grafica.setupUi(self.grafica)
+    self.grafica.show()
+    self.ui_grafica.FechaGraficaDesde.setDate(QtCore.QDate(self.year, self.month, self.day))
+    self.ui_grafica.FechaGraficaHasta.setDate(QtCore.QDate(self.year, self.month, self.day))
+    self.ui_grafica.salirGrafica.clicked.connect(lambda:self.grafica.close())
+    self.ui_grafica.buscarGrafica.clicked.connect(lambda:self.busqueda_grafica())
+
+  def busqueda_grafica(self):
+    fecha_desde = self.ui_grafica.FechaGraficaDesde.text()
+    fecha_hasta = self.ui_grafica.FechaGraficaHasta.text()
+    fecha_desde = datetime.strptime(fecha_desde, "%d/%m/%Y").strftime('%Y-%m-%d')
+    fecha_hasta = datetime.strptime(fecha_hasta, "%d/%m/%Y").strftime('%Y-%m-%d')
+    pempins_db = sqlite3.connect(db_path)
+    pempins_db = pempins_db.cursor()
+    pempins_db.execute(f"select * FROM cuentas where Fecha BETWEEN '{fecha_desde}' AND '{fecha_hasta}';")
+    total = pempins_db.fetchall()
+    pempins_db.close()
+    for i in total:
+      print(i)
 
   def gastar(self):
     self.gasto = QtWidgets.QMainWindow()
