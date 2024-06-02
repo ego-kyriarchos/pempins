@@ -2,6 +2,7 @@ altgraph==0.17.4
 beautifultable==1.1.0
 click==8.1.7
 filelock==3.14.0
+numpy==1.26.4
 packaging==24.0
 pyinstaller==6.6.0
 pyinstaller-hooks-contrib==2024.6
@@ -10,6 +11,7 @@ pyqt6-plugins==6.4.2.2.3
 PyQt6-Qt6==6.4.3
 PyQt6-sip==13.6.0
 pyqt6-tools==6.4.2.3.3
+pyqtgraph==0.13.7
 python-dotenv==1.0.1
 PyYAML==6.0.1
 qt6-applications==6.4.3.2.3

@@ -151,7 +151,7 @@ class MainWin(QMainWindow):
         datos_dict[datos_cache["destino"]] += datos_cache["importe"]
 
     now = datetime.now()
-    fecha = now.strftime("%d/%m/%Y")
+    fecha = now.strftime('%Y-%m-%d')
     pempins_db = sqlite3.connect(db_path)
     total = round(datos_dict["Diezmo"] + datos_dict["Ahorro"] + datos_dict["Comida"] + datos_dict["Capricho"] + datos_dict["Transporte"] + datos_dict["Vivienda"],2)
     pempins_db.execute("""insert into cuentas (Fecha,Diezmo,Ahorro,Comida,Capricho,Transporte,Vivienda,Total)
